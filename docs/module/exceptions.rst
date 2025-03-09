@@ -2,7 +2,7 @@ Exceptions
 ^^^^^^^^^^
 
 .. module:: instaloader
-   :noindex:
+   :no-index:
 
 .. highlight:: python
 
@@ -27,15 +27,25 @@ Exceptions
 
 .. autoexception:: LoginRequiredException
 
+.. autoexception:: LoginException
+
+   .. versionadded:: 4.12
+
 .. autoexception:: TwoFactorAuthRequiredException
 
    .. versionadded:: 4.2
+
+   .. versionchanged:: 4.12
+      Inherits LoginException
 
 .. autoexception:: InvalidArgumentException
 
 .. autoexception:: BadResponseException
 
 .. autoexception:: BadCredentialsException
+
+   .. versionchanged:: 4.12
+      Inherits LoginException
 
 .. autoexception:: PostChangedException
 

@@ -2,7 +2,7 @@ Instagram Structures
 ^^^^^^^^^^^^^^^^^^^^
 
 .. module:: instaloader
-   :noindex:
+   :no-index:
 
 .. highlight:: python
 
@@ -70,6 +70,14 @@ TopSearchResults
    :no-show-inheritance:
 
    .. versionadded:: 4.3
+
+TitlePic
+""""""""
+
+.. autoclass:: TitlePic
+   :no-show-inheritance:
+
+   .. versionadded:: 4.8
 
 Loading and Saving
 """"""""""""""""""

@@ -18,10 +18,13 @@ def get_version():
     raise SystemExit("Could not find version string.")
 
 
-if sys.version_info < (3, 8):
-    sys.exit('Instaloader requires Python >= 3.8.')
+if sys.version_info < (3, 9):
+    sys.exit('Instaloader requires Python >= 3.9.')
 
-requirements = ['requests>=2.4']
+requirements = ['requests>=2.25']
+optional_requirements = {
+    'browser_cookie3': ['browser_cookie3>=0.19.1'],
+}
 
 keywords = (['instagram', 'instagram-scraper', 'instagram-client', 'instagram-feed', 'downloader', 'videos', 'photos',
              'pictures', 'instagram-user-photos', 'instagram-photos', 'instagram-metadata', 'instagram-downloader',
@@ -43,7 +46,8 @@ setup(
                 'from Instagram.',
     long_description=open(os.path.join(SRC, 'README.rst')).read(),
     install_requires=requirements,
-    python_requires='>=3.8',
+    python_requires='>=3.9',
+    extras_require=optional_requirements,
     entry_points={'console_scripts': ['instaloader=instaloader.__main__:main']},
     zip_safe=False,
     keywords=keywords,
@@ -54,10 +58,11 @@ setup(
         'Intended Audience :: Developers',
         'License :: OSI Approved :: MIT License',
         'Operating System :: OS Independent',
-        'Programming Language :: Python :: 3.8',
         'Programming Language :: Python :: 3.9',
         'Programming Language :: Python :: 3.10',
         'Programming Language :: Python :: 3.11',
+        'Programming Language :: Python :: 3.12',
+        'Programming Language :: Python :: 3.13',
         'Programming Language :: Python :: 3 :: Only',
         'Topic :: Internet',
         'Topic :: Multimedia :: Graphics'
