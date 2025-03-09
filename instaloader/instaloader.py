@@ -83,7 +83,7 @@ def _requires_login(func: Callable) -> Callable:
 
 
 def _retry_on_connection_error(func: Callable) -> Callable:
-    """Decorator to retry the function max_connection_attemps number of times.
+    """Decorator to retry the function max_connection_attempts number of times.
 
     Herewith-decorated functions need an ``_attempt`` keyword argument.
 
@@ -722,7 +722,7 @@ class Instaloader:
         # Download the image(s) / video thumbnail and videos within sidecars if desired
         downloaded = True
         if post.typename == 'GraphSidecar':
-            if self.download_pictures or self.download_videos:
+            if (self.download_pictures or self.download_videos) and post.mediacount > 0:
                 if not _all_already_downloaded(
                         filename_template, enumerate(
                             (post.get_is_videos()[i]
@@ -866,8 +866,9 @@ class Instaloader:
                 last_scraped = latest_stamps.get_last_story_timestamp(name)
                 scraped_timestamp = datetime.now().astimezone()
             for item in user_story.get_items():
-                if latest_stamps is not None and item.date_local <= last_scraped:
-                    break
+                if latest_stamps is not None:
+                    if item.date_local <= last_scraped:
+                        break
                 if storyitem_filter is not None and not storyitem_filter(item):
                     self.context.log("<{} skipped>".format(item), flush=True)
                     continue
@@ -1214,6 +1215,7 @@ class Instaloader:
            Use :meth:`Hashtag.get_posts_resumable`."""
         return Hashtag.from_name(self.context, hashtag).get_posts_resumable()
 
+    @_requires_login
     def download_hashtag(self, hashtag: Union[Hashtag, str],
                          max_count: Optional[int] = None,
                          post_filter: Optional[Callable[[Post], bool]] = None,
@@ -1279,6 +1281,31 @@ class Instaloader:
                                  fast_update, post_filter, takewhile=posts_takewhile)
         if latest_stamps is not None and tagged_posts.first_item is not None:
             latest_stamps.set_last_tagged_timestamp(profile.username, tagged_posts.first_item.date_local)
+
+    def download_reels(self, profile: Profile, fast_update: bool = False,
+                      post_filter: Optional[Callable[[Post], bool]] = None,
+                      latest_stamps: Optional[LatestStamps] = None) -> None:
+        """Download reels videos of a profile.
+
+        .. versionadded:: 4.14.0
+
+        """
+        self.context.log("Retrieving reels videos for profile {}.".format(profile.username))
+        posts_takewhile: Optional[Callable[[Post], bool]] = None
+        if latest_stamps is not None:
+            last_scraped = latest_stamps.get_last_reels_timestamp(profile.username)
+            posts_takewhile = lambda p: p.date_local > last_scraped
+        reels = profile.get_reels()
+        self.posts_download_loop(
+            reels,
+            profile.username,
+            fast_update,
+            post_filter,
+            owner_profile=profile,
+            takewhile=posts_takewhile,
+        )
+        if latest_stamps is not None and reels.first_item is not None:
+            latest_stamps.set_last_reels_timestamp(profile.username, reels.first_item.date_local)
 
     def download_igtv(self, profile: Profile, fast_update: bool = False,
                       post_filter: Optional[Callable[[Post], bool]] = None,
@@ -1409,7 +1436,9 @@ class Instaloader:
                           post_filter: Optional[Callable[[Post], bool]] = None,
                           storyitem_filter: Optional[Callable[[Post], bool]] = None,
                           raise_errors: bool = False,
-                          latest_stamps: Optional[LatestStamps] = None):
+                          latest_stamps: Optional[LatestStamps] = None,
+                          max_count: Optional[int] = None,
+                          reels: bool = False):
         """High-level method to download set of profiles.
 
         :param profiles: Set of profiles to download.
@@ -1426,6 +1455,8 @@ class Instaloader:
            Whether :exc:`LoginRequiredException` and :exc:`PrivateProfileNotFollowedException` should be raised or
            catched and printed with :meth:`InstaloaderContext.error_catcher`.
         :param latest_stamps: :option:`--latest-stamps`.
+        :param max_count: Maximum count of posts to download.
+        :param reels: :option:`--reels`.
 
         .. versionadded:: 4.1
 
@@ -1434,6 +1465,12 @@ class Instaloader:
 
         .. versionchanged:: 4.8
            Add `latest_stamps` parameter.
+
+        .. versionchanged:: 4.13
+           Add `max_count` parameter.
+
+        .. versionchanged:: 4.14
+           Add `reels` parameter.
         """
 
         @contextmanager
@@ -1477,6 +1514,12 @@ class Instaloader:
                         self.download_tagged(profile, fast_update=fast_update, post_filter=post_filter,
                                              latest_stamps=latest_stamps)
 
+                # Download reels, if requested
+                if reels:
+                    with self.context.error_catcher('Download reels of {}'.format(profile_name)):
+                        self.download_reels(profile, fast_update=fast_update, post_filter=post_filter,
+                                           latest_stamps=latest_stamps)
+
                 # Download IGTV, if requested
                 if igtv:
                     with self.context.error_catcher('Download IGTV of {}'.format(profile_name)):
@@ -1499,7 +1542,7 @@ class Instaloader:
                     posts_to_download = profile.get_posts()
                     self.posts_download_loop(posts_to_download, profile_name, fast_update, post_filter,
                                              total_count=profile.mediacount, owner_profile=profile,
-                                             takewhile=posts_takewhile, possibly_pinned=3)
+                                             takewhile=posts_takewhile, possibly_pinned=3, max_count=max_count)
                     if latest_stamps is not None and posts_to_download.first_item is not None:
                         latest_stamps.set_last_post_timestamp(profile_name,
                                                               posts_to_download.first_item.date_local)

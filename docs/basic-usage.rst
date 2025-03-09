@@ -92,11 +92,14 @@ Instaloader supports the following targets:
    - :option:`--tagged`
       to **download posts where the user is tagged**, and
 
+   - :option:`--reels`
+      to **download Reels videos**.
+
    - :option:`--igtv`
       to **download IGTV videos**.
 
 - ``"#hashtag"``
-   Posts with a certain **hashtag** (the quotes are usually necessary).
+   Posts with a certain **hashtag** (the quotes are usually necessary). Requires :ref:`login<login>`.
 
 - ``%location id``
    Posts tagged with a given location; the location ID is the numerical ID
@@ -122,7 +125,8 @@ Instaloader supports the following targets:
 
 - ``-post``
    Replace **post** with the post's shortcode to download single post. Must be preceded by ``--`` in
-   the argument list to not be mistaken as an option flag::
+   the argument list to not be mistaken as an option flag.  For example, to download the post
+   https://www.instagram.com/p/**B_K4CykAOtf**, run the command::
 
     instaloader -- -B_K4CykAOtf
 
@@ -231,7 +235,7 @@ The filter string must be a
 where the attributes from :class:`Post` or
 :class:`StoryItem` respectively are defined.
 
-Id est, the following attributes can be used with both
+The following attributes can be used with both
 :option:`--post-filter` and :option:`--storyitem-filter`:
 
 - :attr:`~Post.owner_username` (str), :attr:`~Post.owner_id` (int)
